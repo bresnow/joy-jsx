@@ -1,9 +1,15 @@
 import { build } from "esbuild";
-import {glob} from 'zx';
+import { glob } from 'zx';
 
 await build({
-    entryPoints: await glob('src/**/*.js'),
+    entryPoints: ['src/index.js'],
     bundle: true,
-    outfile: 'build/index.js',
-    bundle: true
+    minify: false,
+    sourcemap: true,
+    outdir: 'build',
+})
+await build({
+    entryPoints: await glob('src/jsxfactory/*.js'),
+    format: 'esm',
+    outdir: 'build/jsxfactory',
 })

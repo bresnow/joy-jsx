@@ -1,7 +1,21 @@
 import $ from 'jquery'
 import Gun from "gun";
-import _jsx from './jsx';
-const gun = Gun({ radisk: false, localStorage: true })
+import "gun/gun.js";
+import "gun/sea.js";
+import "gun/lib/path.js";
+import "gun/sea.js";
+import "gun/lib/webrtc.js";
+import "gun/lib/radix.js";
+import "gun/lib/radisk.js";
+import "gun/lib/store.js";
+import "gun/lib/rindexed.js";
+import "gun/lib/then.js";
+import "gun/lib/later.js";
+import "gun/lib/load.js";
+import "gun/lib/open.js";
+import "gun/lib/not.js";
+import "gun/lib/axe.js";
+const gun = Gun()
 	; (function () {
 		function as(cb, opt) {
 			var el = $(document);
@@ -273,8 +287,6 @@ $(function () {
 	}
 	joy.css = joy.style
 	joy.router = joy.route
-	joy.jsx = _jsx
-
 	var opt = (joy.opt = window.CONFIG || { axe: false }),
 		peers;
 	$("link[type=peer]").each(function () {
@@ -284,7 +296,7 @@ $(function () {
 		(opt.peers =
 			opt.peers ||
 			peers);
-	window.gun = window.gun || Gun(opt);
+	window.gun = gun || Gun(opt);
 	joy.user = gun.user();
 
 }());
