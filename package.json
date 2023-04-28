@@ -1,6 +1,6 @@
 {
   "name": "joy-jsx",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "main": "build/index.js",
   "license": "MIT",
   "type": "module",
