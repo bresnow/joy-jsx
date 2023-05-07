@@ -1,6 +1,6 @@
 {
   "name": "joy-jsx",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "main": "build/index.js",
   "exports": {
     "default": "./build/index.js"
