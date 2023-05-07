@@ -1,202 +1,193 @@
-import $ from 'jquery'
-import Gun from "gun";
 import "gun/gun.js";
 import "gun/sea.js";
 import "gun/lib/path.js";
-import "gun/sea.js";
-import "gun/lib/webrtc.js";
-import "gun/lib/radix.js";
-import "gun/lib/radisk.js";
-import "gun/lib/store.js";
 import "gun/lib/rindexed.js";
 import "gun/lib/then.js";
-import "gun/lib/later.js";
 import "gun/lib/load.js";
 import "gun/lib/open.js";
-import "gun/lib/not.js";
-import "gun/lib/axe.js";
-const gun = Gun()
-	; (function () {
-		function as(cb, opt) {
-			var el = $(document);
-			if (!el.length) { return }
+import "./runtime/chain";
+import jsxFactory from './runtime/jsx';
+; (function () {
+	function as(cb, opt) {
 
-			opt = opt || {};
-			opt.reload = opt.reload || false;
-			opt.match = opt.match || '%-- ';
-			opt.end = opt.end || ' --%';
-			; (function () { // experimental
-				function nest(t, s, e, r, i, tmp, u) {
-					if (r && !r.length) { return t || '' }
-					if (!t) { return [] }
-					e = e || s;
-					i = t.indexOf(s, i || 0);
-					if (0 > i) { return [] }
-					tmp = t.indexOf(e, i + 1);
-					if (!r) { return [t.slice(i + s.length, tmp)].concat(nest(t, s, e, r, tmp, tmp, u)) }
-					return t.slice(0, i) + r[0] + nest(t.slice(tmp + e.length), s, e, r.slice(1), 0, tmp, u);
-				}
+		var el = $(document);
+		if (!el.length) { return }
 
-				/* experimental */
-				function template(tag, attr) {
-					var html = (tag = $(tag))[0].outerHTML, sub, tmp;
-					if (html && (0 > html.indexOf(opt.match))) { return }
-					if (!attr) {
-						$.each(tag[0].attributes, function (i, v) {
-							if (!v) { return }
-							if (!nest(v.value, opt.match, opt.end).length) { return }
-							template(tag, v.name)
-						});
-						if ((sub = tag.children()).length) {
-							return sub.each(function () { template(this) });
-						}
-					}
-					var data = [], plate = attr ? tag.attr(attr) : tag.html();
-					tmp = nest(plate, opt.match, opt.end);
-					if (!tmp.length) { return }
-					$.each(tmp, function (pos, match) {
-						var expr = match.split(' ');
-						var path = (expr[0]).split('.');
-						if (expr = expr.slice(1).join(' ')) {
-							expr = new Function("_", "b", "return (_)" + expr);
-						}
-						var val = (expr && expr('')) || '';
-						data.push(val);
-						if (!attr) { tag.text(val) }
+		opt = opt || {};
+		opt.reload = opt.reload || false;
+		opt.match = opt.match || '%-- ';
+		opt.end = opt.end || ' --%';
+		; (function () { // experimental
+			function nest(t, s, e, r, i, tmp, u) {
+				if (r && !r.length) { return t || '' }
+				if (!t) { return [] }
+				e = e || s;
+				i = t.indexOf(s, i || 0);
+				if (0 > i) { return [] }
+				tmp = t.indexOf(e, i + 1);
+				if (!r) { return [t.slice(i + s.length, tmp)].concat(nest(t, s, e, r, tmp, tmp, u)) }
+				return t.slice(0, i) + r[0] + nest(t.slice(tmp + e.length), s, e, r.slice(1), 0, tmp, u);
+			}
 
-						var ref = gun, sup = [], tmp;
-						if (tmp = tag.attr('node')) { sup.push(tmp) }
-						tag.parents("[node]").each(function () {
-							sup.push($(this).attr('node'));
-						});
-						$.each(path = sup.reverse().concat(path), function (i, v) {
-							ref = ref.get(v);
-						});
-						ref.on(function (v) {
-							v = data[pos] = expr ? expr(v) : v;
-							var tmp = nest(plate, opt.match, opt.end, data);
-							if (attr) {
-								tag.attr(attr, tmp);
-							} else {
-								tag.text(tmp);
-							}
-						});
+			/* experimental */
+			function template(tag, attr) {
+				var html = (tag = $(tag))[0].outerHTML, sub, tmp;
+				if (html && (0 > html.indexOf(opt.match))) { return }
+				if (!attr) {
+					$.each(tag[0].attributes, function (i, v) {
+						if (!v) { return }
+						if (!nest(v.value, opt.match, opt.end).length) { return }
+						template(tag, v.name)
 					});
-				}
-				template(el);
-
-			}());
-
-			if (el.data('as')) {
-				el.html(el.data('as').fresh);
-			} else {
-				el.data('as', {
-					fresh: el.html()
-				})
-			}
-			el.find("[node]").each(function () {
-				if ($(this).find("[node]").length) { return }
-				var name = $(this),
-					parents = name.parents("[node]"),
-					path = [],
-					ref = gun;
-
-				path.push(name.attr('node'));
-				parents.each(function () {
-					path.push($(this).attr('node'));
-				});
-				path = path.reverse();
-
-				path.forEach(function (key) {
-					if ('#' === key) {
-						ref = ref.map()
-					} else {
-						ref = ref.get(key);
+					if ((sub = tag.children()).length) {
+						return sub.each(function () { template(this) });
 					}
-				});
-
-				var many = path.slice().reverse().indexOf('#'), model;
-				many = (0 < ++many) ? many : false;
-				if (many) {
-					model = name.closest("[node='#']");
-					model = model.data('model') || model.data('model', { $: model.clone(), on: model.parent(), has: {} }).hide().data('model');
 				}
+				var data = [], plate = attr ? tag.attr(attr) : tag.html();
+				tmp = nest(plate, opt.match, opt.end);
+				if (!tmp.length) { return }
+				$.each(tmp, function (pos, match) {
+					var expr = match.split(' ');
+					var path = (expr[0]).split('.');
+					if (expr = expr.slice(1).join(' ')) {
+						expr = new Function("_", "b", "return (_)" + expr);
+					}
+					var val = (expr && expr('')) || '';
+					data.push(val);
+					if (!attr) { tag.text(val) }
 
-				ref.get(function (at) {
-					var data = at.put, key = at.get, gui = at.gun || at.$, ui = name, back;
-					if (model) {
-						ui = model.has[(gui._).id];
-						if (!ui) {
-							back = gui.back(many - 1);
-							ui = model.has[(back._).id];
-							if (!ui) {
-								if (!(back._).get) { return }
-								ui = (model.has[(back._).id] = model.$.clone(true).prependTo(model.on));
-							}
-							ui = ui.find("[node='" + key + "']").first();
-							model.has[(gui._).id] = ui;
+					var ref = gun, sup = [], tmp;
+					if (tmp = tag.attr('name')) { sup.push(tmp) }
+					tag.parents("[name]").each(function () {
+						sup.push($(this).attr('name'));
+					});
+					$.each(path = sup.reverse().concat(path), function (i, v) {
+						ref = ref.get(v);
+					});
+					ref.on(function (v) {
+						v = data[pos] = expr ? expr(v) : v;
+						var tmp = nest(plate, opt.match, opt.end, data);
+						if (attr) {
+							tag.attr(attr, tmp);
+						} else {
+							tag.text(tmp);
 						}
-					}
-					ui.data('gun', gui);
-					if (ui.data('was') === data) { return }
-					if (many && ui.is('.sort')) {
-						var up = ui.closest("[node='#']");
-						var tmp = as.sort(data, up.parent().children().last());
-						tmp ? up.insertAfter(tmp) : up.prependTo(up.parent());
-					}
-					if (as.lock === gui) { return }
-					if (!(data && data instanceof Object)) {
-						(ui[0] && u === ui[0].value) ? ui.text(data) : ui.val(data);
-					}
-					ui.data('was', data);
-					if (cb) {
-						cb(data, key, ui);
-					}
+					});
 				});
-			});
-		}
-		as.wait = function (cb, wait, to) {
-			return function (a, b, c) {
-				var me = as.typing = this;
-				clearTimeout(to);
-				to = setTimeout(function () {
-					cb.call(me, a, b, c);
-					as.typing = me = false;
-				}, wait || 200);
 			}
-		}
-		as.escape = function (str) {
-			return opt.match + str + opt.end;
-		}
-		as.sort = function sort(num, li) { return parseFloat(num) >= parseFloat($(li).find('.sort').text() || -Infinity) ? li : sort(num, li.prev()) }
-		let editable = [document.querySelectorAll('input'), document.querySelectorAll('textarea'), document.querySelectorAll('[contenteditable]')];
-		// editable.forEach(function (elm) {
-		// 	elm.forEach(function (tag) {
-		// 		let data
-		// 		if (tag.hasAttribute('value')){
-		// 			data = tag.getAttribute('value')
-		// 		}
-		// 		tag.addEventListener("")
-		// 	})
-		// })
+			template(el);
 
-		$(document).on('keyup', 'input, textarea, [contenteditable]', function (i, elem) {
-			var el = $(this);
-			var data = (el[0] && u === el[0].value) ? el.text() : el.val();
-			var g = el.data('gun');
-			if (!g) { return }
-			as.lock = g;
-			g.put(data);
+		}());
+
+		as.ui = gun;
+		as.el = el || $(el);
+		if (el.data('as')) {
+			el.html(el.data('as'));
+		} else {
+			el.data('as', el.html())
+		}
+		el.find("[name]").each(function () {
+			if ($(this).find("[name]").length) { return }
+			var name = $(this),
+				parents = name.parents("[name]"),
+				path = [],
+				ref = gun;
+
+			path.push(name.attr('name'));
+			parents.each(function () {
+				path.push($(this).attr('name'));
+			});
+			path = path.reverse();
+
+			path.forEach(function (key) {
+				if ('#' === key) {
+					ref = ref.map()
+				} else {
+					ref = ref.get(key);
+				}
+			});
+
+			var many = path.slice().reverse().indexOf('#'), model;
+			many = (0 < ++many) ? many : false;
+			if (many) {
+				model = name.closest("[name='#']");
+				// what is this?
+				model = model.data('model') || model.data('model', { $: model.clone(), on: model.parent(), has: {} }).hide().data('model');
+			}
+
+			ref.get(function (at) {
+				var data = at.put, key = at.get, gui = at.gun || at.$, ui = name, back;
+				if (model) {
+					ui = model.has[(gui._).id];
+					if (!ui) {
+						back = gui.back(many - 1);
+						ui = model.has[(back._).id];
+						if (!ui) {
+							if (!(back._).get) { return }
+							ui = (model.has[(back._).id] = model.$.clone(true).prependTo(model.on));
+						}
+						ui = ui.find("[name=" + key + "]").first();
+						model.has[(gui._).id] = ui;
+					}
+				}
+				ui.data('gun', gui);
+				if (ui.data('was') === data) { return }
+				if (many && ui.is('.sort')) {
+					var up = ui.closest("[name='#']");
+					var tmp = as.sort(data, up.parent().children().last());
+					tmp ? up.insertAfter(tmp) : up.prependTo(up.parent());
+				}
+				if (as.lock === gui) { return }
+				if (!(data && data instanceof Object)) {
+					(ui[0] && u === ui[0].value) ? ui.text(data) : ui.val(data);
+				}
+				ui.data('was', data);
+				if (cb) {
+					cb(data, key, ui);
+				}
+			});
 		});
-		//$(document).on('submit', 'form', function(e){ e.preventDefault() });
-		var u;
-		window.as = as;
-		$.as = as;
-	}());
+	}
+	as.wait = function (cb, wait, to) {
+		return function (a, b, c) {
+			var me = as.typing = this;
+			clearTimeout(to);
+			to = setTimeout(function () {
+				cb.call(me, a, b, c);
+				as.typing = me = false;
+			}, wait || 200);
+		}
+	}
+	// TODO:  Delete
+	as.escape = function (str) {
+		return opt.match + str + opt.end;
+	}
+	as.sort = function sort(num, li) { return parseFloat(num) >= parseFloat($(li).find('.sort').text() || -Infinity) ? li : sort(num, li.prev()) }
+	//CHECKIT
+
+	$(document).on('keyup', 'input, textarea, [contenteditable]', function (i, elem) {
+		var el = $(elem) ?? $(this);
+		var data = !el.val() ? el.text() : el.val();
+		var g = el.data('gun');
+		if (!g) { return }
+		as.lock = g;
+		g.put(data);
+	});
+	// forms do as i say
+	// $(document).on('submit', 'form', function (e) { e.preventDefault() });
+	var u;
+	window.as = as;
+	$.as = as;
+}());
 
 ; (function () {
-	let clickable = [document.querySelectorAll('a'), document.querySelectorAll('button')];//, document.querySelectorAll('button')
-	clickable.forEach(function (ls) {
+	/**
+	 * Links from a and button tags disabled unless external href
+	 * 
+	 * TODO: Page routing with hash routing
+	 */
+	let cliq = [document.querySelectorAll('a'), document.querySelectorAll('button')];//, document.querySelectorAll('button')
+	cliq.forEach(function (ls) {
 		ls.forEach(function (tag) {
 			tag.addEventListener('click', function (ev) {
 				if (tag.href.startsWith('http')) return
@@ -210,7 +201,7 @@ const gun = Gun()
 		if (!href) { return }
 		if (href[0] == '#') { href = href.slice(1) }
 		var h = href.split('/')[0];
-		// $('section').hide();
+		$('.joy_view__').hide();
 		if (router.on === h) { return }
 		location.hash = href;
 		$('#' + h).fadeIn();
@@ -218,20 +209,32 @@ const gun = Gun()
 		router.on = h;
 		return router;
 	};
+	let pageNode = gun.get("__JOY_router").get("page_routes/01");
 	router.page = function (h, cb) {
 		ready(function () {
+			// TODO: Do i need it to be case sensitive?
 			h = h.toLowerCase()
 			router.page[h] = router.page[h] || { on: cb };
 		})
 		return router;
 	}
-	router.render = _renderer;
+	router.model = function (id, model, onto, data) {
+		var $data = $(
+			$('#' + id).get(0) ||
+			$(model).clone(true).attr('id', id).appendTo(onto)
+		);
+		$.each(data, function (field, val) {
+			if ($.isPlainObject(val)) { return }
+			$data.find("[name=\"" + field + "\"]").val(val).text(val);
+		});
+		return $data;
+	}
 	window.onhashchange = function () {
-		$('section').fadeOut().hide();
+		$('.joy_view__').fadeOut().remove();
 		window.location.reload(true)
 		router(location.hash.slice(1))
 	};
-	// $.as && ($.as.route = router);
+	$.as && ($.as.route = router);
 	if (window.as) {
 		as.route = router;
 	} else {
@@ -239,16 +242,17 @@ const gun = Gun()
 	}
 }());
 $(function () {
-	$(JOY.start = JOY.start || function () { as((a, b, c) => { console.log(a, b, c, "ABC") }) });
+	$(JOY.start = JOY.start || function () { $.as((a, b, c) => { console.log(a, b, c, "ABC") }) });
 });
 
-; (function () { // need to isolate into separate module!
-	// need to isolate into separate module!
-	var joy = (window.JOY = function () { });
+; (function () {
+
+	var joy = window.JOY = () => { };
 	/**
 	 * Hash router that changes views/partials
 	 */
 	joy.route = as.route || $.route;
+	joy.page = as.route.page || $.route.page;
 	/**
 	 * adds the template's excape characters
 	 */
@@ -271,9 +275,9 @@ $(function () {
 		joy.user.auth(k, cb, o);
 	};
 
-	joy.style = function (css, m) {
+	joy.style = function (css) {
 		var style = css
-		var tmp = m ? "@media " + m + " {\n\t" : "";
+		var tmp = "";
 		$.each(style, function (c, r) {
 			tmp += c + " {\n";
 			$.each(r, function (k, v) {
@@ -282,12 +286,32 @@ $(function () {
 			tmp += "}\n";
 		});
 		var tag = document.createElement("style");
-		tag.innerHTML = m ? tmp + "\n}" : tmp;
+		tag.innerHTML = tmp;
 		document.documentElement.append(tag);
 	}
 	joy.css = joy.style
 	joy.router = joy.route
-	var opt = (joy.opt = window.CONFIG || { axe: false }),
+
+	// TODO: Remove  and add to chain
+	joy.download = function (filename, data, type, charset, href) {
+		let hiddenElement;
+		if (charset === null) {
+			charset = "utf-8";
+		}
+		hiddenElement = document.createElement("a");
+		hiddenElement.href =
+			href || `data:${type};charset=${charset},${encodeURI(data)}`;
+		hiddenElement.target = "_blank";
+		hiddenElement.download = filename;
+		hiddenElement.click();
+	};
+
+
+	// Renders jsx to index.html. 
+	joy.render = jsxRender;
+	joy.jsxFactory = jsxFactory;
+
+	var opt = (joy.opt = window.CONFIG || { localStorage: false }),
 		peers;
 	$("link[type=peer]").each(function () {
 		(peers || (peers = [])).push($(this).attr("href"));
@@ -296,35 +320,33 @@ $(function () {
 		(opt.peers =
 			opt.peers ||
 			peers);
-	window.gun = gun || Gun(opt);
+	window.gun = window.gun || Gun(opt);
 	joy.user = gun.user();
+	joy.get = gun.get;
+	window.joy = joy;
 
+	window.log = console.log.bind(console)
 }());
 $(function () {
-// NOTE: Views/ pages must be within section tags
-	$("section").not(":first").fadeOut();
+	$(".joy_view__").not(":first").fadeOut();
 	JOY.route(location.hash.slice(1));
 	$(
 		JOY.start =
 		JOY.start ||
 		function () {
-			$.as((a, b, c) => {
-				console.log(a, b, c, "ABC");
-			}
-			)
+			$.as();
 		}
 	);
 });
 ;
 
-
 function camelToKebab(string) {
 	return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, "$1-$2").toLowerCase();
 }
-function _renderer(jsx, id = "app") {
+function jsxRender(jsx, id = null) {
 	id ? document.getElementById(id).innerHTML = (
 		jsx
-	) : document.getElementsByTagName("body")[0].innerHTML = jsx;
+	) : document.body.innerHTML = (jsx)
 }
 function ready(fn) {
 	if (document.readyState !== 'loading') {

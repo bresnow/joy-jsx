@@ -1,4 +1,4 @@
-var empty_tags_default = [
+export default [
   "area",
   "base",
   "br",
@@ -16,6 +16,3 @@ var empty_tags_default = [
   "track",
   "wbr"
 ];
-export {
-  empty_tags_default as default
-};

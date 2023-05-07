@@ -1,5 +1,4 @@
 import emptyTags from './empty-tags';
-import $ from 'jquery';
 // escape an attribute
 let map = { '&': 'amp', '<': 'lt', '>': 'gt', '"': 'quot', "'": 'apos' };
 let esc = str => String(str).replace(/[&<>"']/g, s => `&${map[s]};`);
@@ -18,21 +17,23 @@ export default function (name, attrs) {
 	for (let i = arguments.length; i-- > 2;) {
 		stack.push(arguments[i]);
 	}
-
+	if (name.startsWith("view") || name.startsWith("route")) {
+		let [, id] = name.split("-")
+		name = "div";
+		attrs = { class: ".joy_view__", id };
+	}
 	if (typeof name === 'function') {
 		attrs.children = stack.reverse();
 		return name(attrs);
 	}
-	if (name && typeof name ==='string') {
+	if (name && typeof name === 'string') {
 		s += '<' + name;
-		if (attrs) for (let i in attrs) {
-			if (attrs[i] !== false && attrs[i] != null && i !== setInnerHTMLAttr) {
-				s += ` ${DOMAttributeNames[i] ? DOMAttributeNames[i] : esc(i)}="${esc(attrs[i])}"`;
+		if (attrs) for (let key in attrs) {
+			if (attrs[key] !== false && attrs[key] != null && key !== setInnerHTMLAttr) {
+				s += ` ${DOMAttributeNames[key] ? DOMAttributeNames[key] : esc(key)}="${esc(attrs[key])}"`;
 			};
-			if (i.startsWith("on") && i.toLowerCase() in window && typeof attrs[i] === 'function') {
-				let elem = attrs['id'] ? $(`#${attrs['id']}`): $(`${name}[${DOMAttributeNames[i] ? DOMAttributeNames[i] : i}="${attrs[i]}"]`);
-				elem instanceof Array ? elem = elem[0] : elem = $(elem);
-				elem.on(i.toLowerCase().slice(2), attrs[i]);
+			if (key.startsWith("on") && typeof attrs[key] === 'function') {
+				s += ` ${key.toLocaleLowerCase()}="${attrs[key]}()"`
 			};
 		}
 		s += '>';
