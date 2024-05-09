@@ -229,6 +229,7 @@ import jsxFactory from './runtime/jsx';
 		});
 		return $data;
 	}
+
 	window.onhashchange = function () {
 		$('.joy_view__').fadeOut().remove();
 		window.location.reload(true)
@@ -329,6 +330,7 @@ $(function () {
 }());
 $(function () {
 	$(".joy_view__").not(":first").fadeOut();
+
 	JOY.route(location.hash.slice(1));
 	$(
 		JOY.start =
